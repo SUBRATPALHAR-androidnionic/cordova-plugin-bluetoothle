@@ -268,6 +268,17 @@ declare namespace BluetoothlePlugin {
             params: WriteQCharacteristicParams): void;
 
         /**
+         * Android Only : Write hexadecimal byte to a particular service's characteristic without ASCII conversion.
+         * @param writeSuccess 
+         * @param writeError 
+         * @param params 
+         */
+        writeCommandInByteArray(
+            writeSuccess: (result: OperationResult) => void,
+            writeError: (error: Error) => void,
+            params: WriteCharacteristicParams): void;
+
+        /**
          * Read a particular characterist's descriptor
          * @param readDescriptorSuccess  The success callback that is passed with description object
          * @param readDescriptorError    The callback that will be triggered when the read descriptor  operation fails

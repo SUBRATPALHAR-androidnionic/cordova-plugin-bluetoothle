@@ -367,6 +367,8 @@ public class BluetoothLePlugin extends CordovaPlugin {
       queueStart();
     } else if ("writeQ".equals(action)) {
       writeQAction(args, callbackContext);
+    } else if ("writeCommandInByteArray".equals(action)) {
+      writeCommandInByteArray(args, callbackContext);
     } else if ("readDescriptor".equals(action)) {
       Operation operation = new Operation("readDescriptor", args, callbackContext);
       queue.add(operation);
@@ -2138,6 +2140,101 @@ public class BluetoothLePlugin extends CordovaPlugin {
     } while (offset < length);
 
     writeQ(connection, characteristic, bluetoothGatt);
+  }
+
+  private boolean writeCommandInByteArray(Operation operation) {
+    JSONArray args = operation.args;
+    CallbackContext callbackContext = operation.callbackContext;
+
+    if (isNotInitialized(callbackContext, true)) {
+      return false;
+    }
+
+    JSONObject obj = getArgsObject(args);
+    if (isNotArgsObject(obj, callbackContext)) {
+      return false;
+    }
+
+    String address = getAddress(obj);
+    if (isNotAddress(address, callbackContext)) {
+      return false;
+    }
+
+    HashMap<Object, Object> connection = wasNeverConnected(address, callbackContext);
+    if (connection == null) {
+      return false;
+    }
+
+    BluetoothGatt bluetoothGatt = (BluetoothGatt) connection.get(keyPeripheral);
+    BluetoothDevice device = bluetoothGatt.getDevice();
+
+    if (isNotConnected(connection, device, callbackContext)) {
+      return false;
+    }
+
+    BluetoothGattService service = getService(bluetoothGatt, obj);
+
+    if (isNotService(service, device, callbackContext)) {
+      return false;
+    }
+
+    BluetoothGattCharacteristic characteristic = getCharacteristic(obj, service);
+
+    if (isNotCharacteristic(characteristic, device, callbackContext)) {
+      return false;
+    }
+
+    UUID characteristicUuid = characteristic.getUuid();
+
+    JSONObject returnObj = new JSONObject();
+
+    addDevice(returnObj, device);
+
+    addCharacteristic(returnObj, characteristic);
+
+    byte[] value = getPropertyBytes(obj, keyValue);
+
+    if (value == null) {
+      addProperty(returnObj, keyError, errorWrite);
+      addProperty(returnObj, keyMessage, logWriteValueNotFound);
+      callbackContext.error(returnObj);
+      return false;
+    }
+
+    /**
+     *
+     * @todo
+     * Write a byte array, without further ASCII conversion
+     *
+     */
+    int writeType = this.getWriteType(obj);
+    characteristic.setWriteType(writeType);
+
+    boolean result = characteristic.setValue(value);
+
+    if (!result) {
+      addProperty(returnObj, keyError, errorWrite);
+      addProperty(returnObj, keyMessage, logWriteValueNotSet);
+      callbackContext.error(returnObj);
+      return false;
+    }
+
+    AddCallback(characteristicUuid, connection, operationWrite, callbackContext);
+
+    result = bluetoothGatt.writeCharacteristic(characteristic);
+
+    if (!result) {
+      addProperty(returnObj, keyError, errorWrite);
+      addProperty(returnObj, keyMessage, logWriteFail);
+      callbackContext.error(returnObj);
+      RemoveCallback(characteristicUuid, connection, operationWrite);
+
+      return false;
+    }
+
+    operation.device = device;
+
+    return true;
   }
 
   private void writeQ(HashMap<Object, Object> connection, BluetoothGattCharacteristic characteristic, BluetoothGatt bluetoothGatt) {
