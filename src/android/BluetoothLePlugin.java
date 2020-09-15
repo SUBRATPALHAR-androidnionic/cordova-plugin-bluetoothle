@@ -368,7 +368,9 @@ public class BluetoothLePlugin extends CordovaPlugin {
     } else if ("writeQ".equals(action)) {
       writeQAction(args, callbackContext);
     } else if ("writeCommandInByteArray".equals(action)) {
-      writeCommandInByteArray(args, callbackContext);
+      Operation operation = new Operation("writeCommandInByteArray", args, callbackContext);
+      queue.add(operation);
+      queueStart();
     } else if ("readDescriptor".equals(action)) {
       Operation operation = new Operation("readDescriptor", args, callbackContext);
       queue.add(operation);
@@ -3235,6 +3237,8 @@ public class BluetoothLePlugin extends CordovaPlugin {
       result = readAction(operation);
     } else if (operation.type.equals("write")) {
       result = writeAction(operation);
+    } else if (operation.type.equals("writeCommandInByteArray")){
+      result = writeCommandInByteArray(operation);
     } else if (operation.type.equals("readDescriptor")) {
       result = readDescriptorAction(operation);
     } else if (operation.type.equals("writeDescriptor")) {
