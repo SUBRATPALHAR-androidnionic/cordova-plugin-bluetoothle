@@ -2152,7 +2152,7 @@ public class BluetoothLePlugin extends CordovaPlugin {
       return false;
     }
 
-    JSONObject obj = getArgsObject(args);
+    JSONObject obj = getArgsObject(args); // args.getJSONObject(0);
     if (isNotArgsObject(obj, callbackContext)) {
       return false;
     }
@@ -2194,7 +2194,7 @@ public class BluetoothLePlugin extends CordovaPlugin {
 
     addCharacteristic(returnObj, characteristic);
 
-    byte[] value = getPropertyBytes(obj, keyValue);
+    byte[] value = getByteValues(obj, keyValue); /** keyValue = value */
 
     if (value == null) {
       addProperty(returnObj, keyError, errorWrite);
@@ -2203,12 +2203,6 @@ public class BluetoothLePlugin extends CordovaPlugin {
       return false;
     }
 
-    /**
-     *
-     * @todo
-     * Write a byte array, without further ASCII conversion
-     *
-     */
     int writeType = this.getWriteType(obj);
     characteristic.setWriteType(writeType);
 
@@ -3707,6 +3701,14 @@ public class BluetoothLePlugin extends CordovaPlugin {
       return null;
     }
 
+    return bytes;
+  }
+
+  private byte[] getByteValues(JSONObject obj, String key) {
+    byte[] bytes = obj.optString(key, null);
+    if (bytes == null || bytes.length == 0) {
+      return null;
+    }
     return bytes;
   }
 

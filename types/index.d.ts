@@ -276,7 +276,7 @@ declare namespace BluetoothlePlugin {
         writeCommandInByteArray(
             writeSuccess: (result: OperationResult) => void,
             writeError: (error: Error) => void,
-            params: WriteCharacteristicParams): void;
+            params: WriteCommandInByteArrayParams): void;
 
         /**
          * Read a particular characterist's descriptor
@@ -666,6 +666,12 @@ declare namespace BluetoothlePlugin {
     interface WriteCharacteristicParams extends DescriptorParams {
         /* Base64 encoded string */
         value: string,
+        /* Set to "noResponse" to enable write without response, all other values will write normally. */
+        type?: string
+    }
+
+    interface WriteCommandInByteArrayParams extends DescriptorParams {
+        value: ArrayBuffer,
         /* Set to "noResponse" to enable write without response, all other values will write normally. */
         type?: string
     }
